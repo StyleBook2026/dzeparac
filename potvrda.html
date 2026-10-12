@@ -1,0 +1,39 @@
+<!doctype html><html lang="sr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Nalog — Dzeparac</title><style>:root{--bg:#F6F2EC;--card:#fff;--txt:#181320;--mut:#5d5466;--acc:#E85A0C;--line:#e6dfd6}@media (prefers-color-scheme:dark){:root{--bg:#07060A;--card:#181320;--txt:#F6F2EC;--mut:#a79fb1;--acc:#FF6A1A;--line:#2c2437}}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}main{max-width:760px;margin:0 auto;padding:28px 16px 60px}.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;margin-bottom:18px}.brand span{width:34px;height:34px;border-radius:10px;background:var(--acc);display:inline-block}nav a{color:var(--acc);margin-right:14px;font-weight:600;text-decoration:none}h1{font-size:28px;line-height:1.2;margin:22px 0 6px}h2{font-size:19px;margin:28px 0 8px}p,li{color:var(--txt);overflow-wrap:anywhere}a{color:var(--acc)}.t{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px;background:var(--card)}th,td{border:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}footer{margin-top:40px;color:var(--mut);font-size:13px}</style></head><body><main><div class="brand"><span></span>Dzeparac</div><nav><a href="index.html">Početna</a><a href="privatnost.html">Privatnost</a><a href="uslovi.html">Uslovi</a><a href="brisanje-naloga.html">Brisanje naloga</a></nav><div id="out"><h1>Učitavanje…</h1></div>
+<form id="f" style="display:none;margin-top:16px">
+  <h1>Nova lozinka</h1>
+  <p>Upišite novu lozinku za aplikaciju Dzeparac (najmanje 6 znakova).</p>
+  <p><input id="p1" type="password" placeholder="Nova lozinka" autocomplete="new-password" style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);font-size:16px"></p>
+  <p><input id="p2" type="password" placeholder="Ponovite lozinku" autocomplete="new-password" style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);font-size:16px"></p>
+  <p id="err" style="color:#c0392b"></p>
+  <button type="submit" style="width:100%;padding:14px;border:0;border-radius:12px;background:var(--acc);color:#fff;font-weight:800;font-size:16px">Sačuvaj lozinku</button>
+</form>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+(function () {
+  var out = document.getElementById('out'), f = document.getElementById('f');
+  var h = new URLSearchParams(location.hash.slice(1)), q = new URLSearchParams(location.search);
+  var type = h.get('type') || q.get('type');
+  var errDesc = h.get('error_description') || q.get('error_description');
+  function show(title, text) { out.innerHTML = '<h1>' + title + '</h1><p>' + text + '</p>'; }
+  if (errDesc) { show('Link nije važeći', 'Link je istekao ili je već iskorišćen. U aplikaciji zatražite novi (Zaboravljena lozinka ili ponovna registracija).'); return; }
+  if (type !== 'recovery') {
+    show('Email je potvrđen', 'Hvala! Vaš nalog u aplikaciji <b>Dzeparac</b> je aktiviran. Vratite se u aplikaciju i prijavite se svojim emailom i lozinkom.');
+    return;
+  }
+  // Promena lozinke: supabase-js iz linka (#access_token…) pravi privremenu sesiju
+  var sb = supabase.createClient('https://rrldqeusdrstlipbfnsw.supabase.co', 'sb_publishable__yQU-vMDOuaq18sGggzfZg_G3qbGrV9');
+  out.innerHTML = ''; f.style.display = 'block';
+  f.onsubmit = async function (e) {
+    e.preventDefault();
+    var p1 = document.getElementById('p1').value, p2 = document.getElementById('p2').value, er = document.getElementById('err');
+    er.textContent = '';
+    if (p1.length < 6) { er.textContent = 'Lozinka mora imati najmanje 6 znakova.'; return; }
+    if (p1 !== p2) { er.textContent = 'Lozinke se ne poklapaju.'; return; }
+    var r = await sb.auth.updateUser({ password: p1 });
+    if (r.error) { er.textContent = 'Nije uspelo: ' + r.error.message + '. Zatražite novi link u aplikaciji.'; return; }
+    await sb.auth.signOut();
+    f.style.display = 'none';
+    show('Lozinka je promenjena', 'Vratite se u aplikaciju Dzeparac i prijavite se novom lozinkom.');
+  };
+})();
+</script><footer>Dzeparac · Nikola Petković · stylebook2026@gmail.com</footer></main></body></html>
